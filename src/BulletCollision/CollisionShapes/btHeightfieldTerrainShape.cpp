@@ -398,71 +398,108 @@ void btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 		}
 	}
 
-	// TODO If m_vboundsGrid is available, use it to determine if we really need to process this area
-
 	const Range aabbUpRange{aabbMin[m_upAxis], aabbMax[m_upAxis]};
-	for (int j = startJ; j < endJ; j++)
+
+	auto process = [this, callback, aabbUpRange](int startX, int endX, int startJ, int endJ)
 	{
-		for (int x = startX; x < endX; x++)
+		for (int j = startJ; j < endJ; j++)
 		{
-			btVector3 vertices[3];
-			int indices[3] = {0, 1, 2};
-			if (m_flipTriangleWinding)
+			for (int x = startX; x < endX; x++)
 			{
-				indices[0] = 2;
-				indices[2] = 0;
+				btVector3 vertices[3];
+				int indices[3] = {0, 1, 2};
+				if (m_flipTriangleWinding)
+				{
+					indices[0] = 2;
+					indices[2] = 0;
+				}
+
+				if (m_flipQuadEdges || (m_useDiamondSubdivision && !((j + x) & 1)) || (m_useZigzagSubdivision && !(j & 1)))
+				{
+					getVertex(x, j, vertices[indices[0]]);
+					getVertex(x, j + 1, vertices[indices[1]]);
+					getVertex(x + 1, j + 1, vertices[indices[2]]);
+
+					// Skip triangle processing if the triangle is out-of-AABB.
+					Range upRange = minmaxRange(vertices[0][m_upAxis], vertices[1][m_upAxis], vertices[2][m_upAxis]);
+
+					if (upRange.overlaps(aabbUpRange))
+						callback->processTriangle(vertices, 2 * x, j);
+
+					// already set: getVertex(x, j, vertices[indices[0]])
+
+					// equivalent to: getVertex(x + 1, j + 1, vertices[indices[1]]);
+					vertices[indices[1]] = vertices[indices[2]];
+
+					getVertex(x + 1, j, vertices[indices[2]]);
+					upRange.min = btMin(upRange.min, vertices[indices[2]][m_upAxis]);
+					upRange.max = btMax(upRange.max, vertices[indices[2]][m_upAxis]);
+
+					if (upRange.overlaps(aabbUpRange))
+						callback->processTriangle(vertices, 2 * x + 1, j);
+				}
+				else
+				{
+					getVertex(x, j, vertices[indices[0]]);
+					getVertex(x, j + 1, vertices[indices[1]]);
+					getVertex(x + 1, j, vertices[indices[2]]);
+
+					// Skip triangle processing if the triangle is out-of-AABB.
+					Range upRange = minmaxRange(vertices[0][m_upAxis], vertices[1][m_upAxis], vertices[2][m_upAxis]);
+
+					if (upRange.overlaps(aabbUpRange))
+						callback->processTriangle(vertices, 2 * x, j);
+
+					// already set: getVertex(x, j + 1, vertices[indices[1]]);
+
+					// equivalent to: getVertex(x + 1, j, vertices[indices[0]]);
+					vertices[indices[0]] = vertices[indices[2]];
+
+					getVertex(x + 1, j + 1, vertices[indices[2]]);
+					upRange.min = btMin(upRange.min, vertices[indices[2]][m_upAxis]);
+					upRange.max = btMax(upRange.max, vertices[indices[2]][m_upAxis]);
+
+					if (upRange.overlaps(aabbUpRange))
+						callback->processTriangle(vertices, 2 * x + 1, j);
+				}
 			}
+		}
+	};
 
-			if (m_flipQuadEdges || (m_useDiamondSubdivision && !((j + x) & 1)) || (m_useZigzagSubdivision && !(j & 1)))
+
+	const Range rawAabbUpRange{(aabbMin[m_upAxis] / m_localScaling.getY()) + m_sampleOffset.getY(), (aabbMax[m_upAxis] / m_localScaling.getY()) + m_sampleOffset.getY()};
+
+	if (m_vboundsGrid.size())
+	{
+		auto chunkMinJ = std::clamp(startJ / m_vboundsChunkSize, 0, m_vboundsGridLength);
+		auto chunkMaxJ = std::clamp(endJ / m_vboundsChunkSize, 0, m_vboundsGridLength);
+
+		auto chunkMinX = std::clamp(startX / m_vboundsChunkSize, 0, m_vboundsGridWidth);
+		auto chunkMaxX = std::clamp(endX / m_vboundsChunkSize, 0, m_vboundsGridWidth);
+
+		size_t num_overlaps = 0;
+
+		for (int j = chunkMinJ; j <= chunkMaxJ; j++)
+		{
+			for (int x = chunkMinX; x <= chunkMaxX; x++)
 			{
-				getVertex(x, j, vertices[indices[0]]);
-				getVertex(x, j + 1, vertices[indices[1]]);
-				getVertex(x + 1, j + 1, vertices[indices[2]]);
+				if (rawAabbUpRange.overlaps(m_vboundsGrid[x + j * m_vboundsGridWidth]))
+				{
+					int cStartX = x * m_vboundsChunkSize;
+					int cEndX = (x + 1) * m_vboundsChunkSize;
 
-				// Skip triangle processing if the triangle is out-of-AABB.
-				Range upRange = minmaxRange(vertices[0][m_upAxis], vertices[1][m_upAxis], vertices[2][m_upAxis]);
+					int cStartJ = j * m_vboundsChunkSize;
+					int cEndJ = (j + 1) * m_vboundsChunkSize;
 
-				if (upRange.overlaps(aabbUpRange))
-					callback->processTriangle(vertices, 2 * x, j);
-
-				// already set: getVertex(x, j, vertices[indices[0]])
-
-				// equivalent to: getVertex(x + 1, j + 1, vertices[indices[1]]);
-				vertices[indices[1]] = vertices[indices[2]];
-
-				getVertex(x + 1, j, vertices[indices[2]]);
-				upRange.min = btMin(upRange.min, vertices[indices[2]][m_upAxis]);
-				upRange.max = btMax(upRange.max, vertices[indices[2]][m_upAxis]);
-
-				if (upRange.overlaps(aabbUpRange))
-					callback->processTriangle(vertices, 2 * x + 1, j);
-			}
-			else
-			{
-				getVertex(x, j, vertices[indices[0]]);
-				getVertex(x, j + 1, vertices[indices[1]]);
-				getVertex(x + 1, j, vertices[indices[2]]);
-
-				// Skip triangle processing if the triangle is out-of-AABB.
-				Range upRange = minmaxRange(vertices[0][m_upAxis], vertices[1][m_upAxis], vertices[2][m_upAxis]);
-
-				if (upRange.overlaps(aabbUpRange))
-					callback->processTriangle(vertices, 2 * x, j);
-
-				// already set: getVertex(x, j + 1, vertices[indices[1]]);
-
-				// equivalent to: getVertex(x + 1, j, vertices[indices[0]]);
-				vertices[indices[0]] = vertices[indices[2]];
-
-				getVertex(x + 1, j + 1, vertices[indices[2]]);
-				upRange.min = btMin(upRange.min, vertices[indices[2]][m_upAxis]);
-				upRange.max = btMax(upRange.max, vertices[indices[2]][m_upAxis]);
-
-				if (upRange.overlaps(aabbUpRange))
-					callback->processTriangle(vertices, 2 * x + 1, j);
+					process(std::max(cStartX, startX), std::min(cEndX, endX), std::max(cStartJ, startJ), std::min(cEndJ, endJ));
+				}
 			}
 		}
 	}
+	else
+	{
+		process(startX, endX, startJ, endJ);
+	}	
 }
 
 void btHeightfieldTerrainShape::calculateLocalInertia(btScalar, btVector3& inertia) const
