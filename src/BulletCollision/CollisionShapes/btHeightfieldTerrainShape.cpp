@@ -400,6 +400,10 @@ void btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 
 	const Range aabbUpRange{aabbMin[m_upAxis], aabbMax[m_upAxis]};
 
+	static constexpr int i0 = m_flipTriangleWinding ? 2 : 0;
+	static constexpr int i1 = 1;
+	static constexpr int i2 = m_flipTriangleWinding ? 0 : 2;
+
 	auto process = [this, callback, aabbUpRange](int startX, int endX, int startJ, int endJ)
 	{
 		for (int j = startJ; j < endJ; j++)
@@ -407,18 +411,12 @@ void btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 			for (int x = startX; x < endX; x++)
 			{
 				btVector3 vertices[3];
-				int indices[3] = {0, 1, 2};
-				if (m_flipTriangleWinding)
-				{
-					indices[0] = 2;
-					indices[2] = 0;
-				}
 
 				if (m_flipQuadEdges || (m_useDiamondSubdivision && !((j + x) & 1)) || (m_useZigzagSubdivision && !(j & 1)))
 				{
-					getVertex(x, j, vertices[indices[0]]);
-					getVertex(x, j + 1, vertices[indices[1]]);
-					getVertex(x + 1, j + 1, vertices[indices[2]]);
+					getVertex(x, j, vertices[i0]);
+					getVertex(x, j + 1, vertices[i1]);
+					getVertex(x + 1, j + 1, vertices[i2]);
 
 					// Skip triangle processing if the triangle is out-of-AABB.
 					Range upRange = minmaxRange(vertices[0][m_upAxis], vertices[1][m_upAxis], vertices[2][m_upAxis]);
@@ -426,23 +424,23 @@ void btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 					if (upRange.overlaps(aabbUpRange))
 						callback->processTriangle(vertices, 2 * x, j);
 
-					// already set: getVertex(x, j, vertices[indices[0]])
+					// already set: getVertex(x, j, vertices[i0])
 
-					// equivalent to: getVertex(x + 1, j + 1, vertices[indices[1]]);
-					vertices[indices[1]] = vertices[indices[2]];
+					// equivalent to: getVertex(x + 1, j + 1, vertices[i1]);
+					vertices[i1] = vertices[i2];
 
-					getVertex(x + 1, j, vertices[indices[2]]);
-					upRange.min = btMin(upRange.min, vertices[indices[2]][m_upAxis]);
-					upRange.max = btMax(upRange.max, vertices[indices[2]][m_upAxis]);
+					getVertex(x + 1, j, vertices[i2]);
+					upRange.min = btMin(upRange.min, vertices[i2][m_upAxis]);
+					upRange.max = btMax(upRange.max, vertices[i2][m_upAxis]);
 
 					if (upRange.overlaps(aabbUpRange))
 						callback->processTriangle(vertices, 2 * x + 1, j);
 				}
 				else
 				{
-					getVertex(x, j, vertices[indices[0]]);
-					getVertex(x, j + 1, vertices[indices[1]]);
-					getVertex(x + 1, j, vertices[indices[2]]);
+					getVertex(x, j, vertices[i0]);
+					getVertex(x, j + 1, vertices[i1]);
+					getVertex(x + 1, j, vertices[i2]);
 
 					// Skip triangle processing if the triangle is out-of-AABB.
 					Range upRange = minmaxRange(vertices[0][m_upAxis], vertices[1][m_upAxis], vertices[2][m_upAxis]);
@@ -450,14 +448,14 @@ void btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 					if (upRange.overlaps(aabbUpRange))
 						callback->processTriangle(vertices, 2 * x, j);
 
-					// already set: getVertex(x, j + 1, vertices[indices[1]]);
+					// already set: getVertex(x, j + 1, vertices[i1]);
 
-					// equivalent to: getVertex(x + 1, j, vertices[indices[0]]);
-					vertices[indices[0]] = vertices[indices[2]];
+					// equivalent to: getVertex(x + 1, j, vertices[i0]);
+					vertices[i0] = vertices[i2];
 
-					getVertex(x + 1, j + 1, vertices[indices[2]]);
-					upRange.min = btMin(upRange.min, vertices[indices[2]][m_upAxis]);
-					upRange.max = btMax(upRange.max, vertices[indices[2]][m_upAxis]);
+					getVertex(x + 1, j + 1, vertices[i2]);
+					upRange.min = btMin(upRange.min, vertices[i2][m_upAxis]);
+					upRange.max = btMax(upRange.max, vertices[i2][m_upAxis]);
 
 					if (upRange.overlaps(aabbUpRange))
 						callback->processTriangle(vertices, 2 * x + 1, j);
