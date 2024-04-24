@@ -121,7 +121,13 @@ static inline __m128 btSimdDot3(__m128 vec0, __m128 vec1)
 
 #define USE_FMA 1
 #define USE_FMA3_INSTEAD_FMA4 1
-#define USE_SSE4_DOT 1
+//#define USE_SSE4_DOT 1
+
+#ifdef __clang__
+#define FMA_FUNC __attribute__((__target__("fma")))
+#else
+#define FMA_FUNC
+#endif
 
 #define SSE4_DP(a, b) _mm_dp_ps(a, b, 0x7f)
 #define SSE4_DP_FP(a, b) _mm_cvtss_f32(_mm_dp_ps(a, b, 0x7f))
@@ -184,7 +190,7 @@ static btScalar gResolveSingleConstraintRowGeneric_sse2(btSolverBody& bodyA, btS
 }
 
 // Enhanced version of gResolveSingleConstraintRowGeneric_sse2 with SSE4.1 and FMA3
-static btScalar gResolveSingleConstraintRowGeneric_sse4_1_fma3(btSolverBody& bodyA, btSolverBody& bodyB, const btSolverConstraint& c)
+FMA_FUNC static btScalar gResolveSingleConstraintRowGeneric_sse4_1_fma3(btSolverBody& bodyA, btSolverBody& bodyB, const btSolverConstraint& c)
 {
 #if defined(BT_ALLOW_SSE4)
 	__m128 tmp = _mm_set_ps1(c.m_jacDiagABInv);
@@ -239,7 +245,7 @@ static btScalar gResolveSingleConstraintRowLowerLimit_sse2(btSolverBody& bodyA, 
 }
 
 // Enhanced version of gResolveSingleConstraintRowGeneric_sse2 with SSE4.1 and FMA3
-static btScalar gResolveSingleConstraintRowLowerLimit_sse4_1_fma3(btSolverBody& bodyA, btSolverBody& bodyB, const btSolverConstraint& c)
+FMA_FUNC static btScalar gResolveSingleConstraintRowLowerLimit_sse4_1_fma3(btSolverBody& bodyA, btSolverBody& bodyB, const btSolverConstraint& c)
 {
 #ifdef BT_ALLOW_SSE4
 	__m128 tmp = _mm_set_ps1(c.m_jacDiagABInv);
