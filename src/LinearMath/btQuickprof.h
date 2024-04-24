@@ -195,6 +195,12 @@ public:
 	~CProfileSample(void);
 };
 
+#ifdef TRACY_ENABLE
+#include <tracy/Tracy.hpp>
+
+#define BT_PROFILE(name) ZoneScopedN(name)
+#else
 #define BT_PROFILE(name) CProfileSample __profile(name)
+#endif
 
 #endif  //BT_QUICK_PROF_H
