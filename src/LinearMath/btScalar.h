@@ -131,6 +131,10 @@ inline int btIsDoublePrecision()
 			//#define BT_USE_SSE_IN_API
 			#endif //BT_USE_SSE
 			#include <emmintrin.h>
+
+#ifdef BT_ALLOW_SSE3
+#include <pmmintrin.h>
+#endif
 #endif
 
 		#endif//_XBOX

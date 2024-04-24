@@ -229,12 +229,19 @@ public:
 	SIMD_FORCE_INLINE btScalar dot(const btVector3& v) const
 	{
 #if defined BT_USE_SIMD_VECTOR3 && defined(BT_USE_SSE_IN_API) && defined(BT_USE_SSE)
+#if defined (BT_ALLOW_SSE3)
+		__m128 mul0 = _mm_mul_ps(mVec128, v.mVec128);
+		__m128 add0 = _mm_hadd_ps(mul0, mul0);
+		return _mm_cvtss_f32(_mm_hadd_ps(add0, add0));
+#else
+
 		__m128 vd = _mm_mul_ps(mVec128, v.mVec128);
 		__m128 z = _mm_movehl_ps(vd, vd);
 		__m128 y = _mm_shuffle_ps(vd, vd, 0x55);
 		vd = _mm_add_ss(vd, y);
 		vd = _mm_add_ss(vd, z);
 		return _mm_cvtss_f32(vd);
+#endif
 #elif defined(BT_USE_NEON)
 		float32x4_t vd = vmulq_f32(mVec128, v.mVec128);
 		float32x2_t x = vpadd_f32(vget_low_f32(vd), vget_low_f32(vd));
@@ -305,13 +312,18 @@ public:
 		btAssert(!fuzzyZero());
 
 #if defined(BT_USE_SSE_IN_API) && defined(BT_USE_SSE)
+#if defined(BT_ALLOW_SSE3)
+		__m128 vd = _mm_mul_ps(mVec128, mVec128);
+		vd = _mm_hadd_ps(vd, vd);
+		vd = _mm_hadd_ps(vd, vd);
+#else
 		// dot product first
 		__m128 vd = _mm_mul_ps(mVec128, mVec128);
-		__m128 z = _mm_movehl_ps(vd, vd);
-		__m128 y = _mm_shuffle_ps(vd, vd, 0x55);
-		vd = _mm_add_ss(vd, y);
-		vd = _mm_add_ss(vd, z);
-
+		__m128 z0 = _mm_movehl_ps(vd, vd);
+		__m128 y0 = _mm_shuffle_ps(vd, vd, 0x55);
+		vd = _mm_add_ss(vd, y0);
+		vd = _mm_add_ss(vd, z0);
+#endif
 #if 0
         vd = _mm_sqrt_ss(vd);
 		vd = _mm_div_ss(v1110, vd);
@@ -320,10 +332,10 @@ public:
 #else
 
 		// NR step 1/sqrt(x) - vd is x, y is output
-		y = _mm_rsqrt_ss(vd);  // estimate
+		__m128 y = _mm_rsqrt_ss(vd);  // estimate
 
 		//  one step NR
-		z = v1_5;
+		__m128 z = v1_5;
 		vd = _mm_mul_ss(vd, vHalf);  // vd * 0.5
 		//x2 = vd;
 		vd = _mm_mul_ss(vd, y);  // vd * 0.5 * y0
@@ -732,7 +744,6 @@ public:
 		a2 = _mm_and_ps(a2, btvxyzMaskf);
 		r = _mm_add_ps(r, btCastdTo128f(_mm_move_sd(btCastfTo128d(a2), btCastfTo128d(b1))));
 		return btVector3(r);
-
 #elif defined(BT_USE_NEON)
 		static const uint32x4_t xyzMask = (const uint32x4_t){static_cast<uint32_t>(-1), static_cast<uint32_t>(-1), static_cast<uint32_t>(-1), 0};
 		float32x4_t a0 = vmulq_f32(v0.mVec128, this->mVec128);

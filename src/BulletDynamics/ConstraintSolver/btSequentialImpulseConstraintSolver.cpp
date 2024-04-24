@@ -106,8 +106,14 @@ static btScalar gResolveSingleConstraintRowLowerLimit_scalar_reference(btSolverB
 #define btVecSplat(x, e) _mm_shuffle_ps(x, x, _MM_SHUFFLE(e, e, e, e))
 static inline __m128 btSimdDot3(__m128 vec0, __m128 vec1)
 {
+#if defined(BT_ALLOW_SSE3)
+	__m128 mul0 = _mm_mul_ps(vec0, vec1);
+	__m128 add0 = _mm_hadd_ps(mul0, mul0);
+	return _mm_hadd_ps(add0, add0);
+#else
 	__m128 result = _mm_mul_ps(vec0, vec1);
 	return _mm_add_ps(btVecSplat(result, 0), _mm_add_ps(btVecSplat(result, 1), btVecSplat(result, 2)));
+#endif
 }
 
 #if defined(BT_ALLOW_SSE4)
