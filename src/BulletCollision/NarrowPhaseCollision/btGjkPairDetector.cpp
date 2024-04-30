@@ -142,9 +142,11 @@ inline void btVec3Copy(btVector3 *v, const btVector3 *w)
 
 inline void ccdVec3Add(btVector3 *v, const btVector3 *w)
 {
-	v->m_floats[0] += w->m_floats[0];
-	v->m_floats[1] += w->m_floats[1];
-	v->m_floats[2] += w->m_floats[2];
+	//v->m_floats[0] += w->m_floats[0];
+	//v->m_floats[1] += w->m_floats[1];
+	//v->m_floats[2] += w->m_floats[2];
+
+	*v += *w;
 }
 
 inline void ccdVec3Sub(btVector3 *v, const btVector3 *w)
@@ -157,10 +159,7 @@ inline void btVec3Sub2(btVector3 *d, const btVector3 *v, const btVector3 *w)
 }
 inline btScalar btVec3Dot(const btVector3 *a, const btVector3 *b)
 {
-	btScalar dot;
-	dot = a->dot(*b);
-
-	return dot;
+	return a->dot(*b);
 }
 
 inline btScalar ccdVec3Dist2(const btVector3 *a, const btVector3 *b)
@@ -172,16 +171,20 @@ inline btScalar ccdVec3Dist2(const btVector3 *a, const btVector3 *b)
 
 inline void btVec3Scale(btVector3 *d, btScalar k)
 {
-	d->m_floats[0] *= k;
-	d->m_floats[1] *= k;
-	d->m_floats[2] *= k;
+	//d->m_floats[0] *= k;
+	//d->m_floats[1] *= k;
+	//d->m_floats[2] *= k;
+
+	*d *= k;
 }
 
 inline void btVec3Cross(btVector3 *d, const btVector3 *a, const btVector3 *b)
 {
-	d->m_floats[0] = (a->m_floats[1] * b->m_floats[2]) - (a->m_floats[2] * b->m_floats[1]);
-	d->m_floats[1] = (a->m_floats[2] * b->m_floats[0]) - (a->m_floats[0] * b->m_floats[2]);
-	d->m_floats[2] = (a->m_floats[0] * b->m_floats[1]) - (a->m_floats[1] * b->m_floats[0]);
+	//d->m_floats[0] = (a->m_floats[1] * b->m_floats[2]) - (a->m_floats[2] * b->m_floats[1]);
+	//d->m_floats[1] = (a->m_floats[2] * b->m_floats[0]) - (a->m_floats[0] * b->m_floats[2]);
+	//d->m_floats[2] = (a->m_floats[0] * b->m_floats[1]) - (a->m_floats[1] * b->m_floats[0]);
+
+	*d = a->cross(*b);
 }
 
 inline void btTripleCross(const btVector3 *a, const btVector3 *b,
@@ -229,7 +232,8 @@ btScalar ccdVec3Z(const btVector3 *v)
 }
 inline int btVec3Eq(const btVector3 *a, const btVector3 *b)
 {
-	return ccdEq(ccdVec3X(a), ccdVec3X(b)) && ccdEq(ccdVec3Y(a), ccdVec3Y(b)) && ccdEq(ccdVec3Z(a), ccdVec3Z(b));
+	//return ccdEq(ccdVec3X(a), ccdVec3X(b)) && ccdEq(ccdVec3Y(a), ccdVec3Y(b)) && ccdEq(ccdVec3Z(a), ccdVec3Z(b));
+	return *a == *b;
 }
 
 inline void btSimplexAdd(btSimplex *s, const btSupportVector *v)
