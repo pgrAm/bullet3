@@ -113,11 +113,16 @@ void btConvexTriangleCallback::processTriangle(btVector3* triangle, int partId, 
 			const btVector3 v2 = m_triBodyWrap->getWorldTransform()*triangle[2];
 
 			btVector3 triangle_normal_world = ( v1 - v0).cross(v2 - v0);
+
+			btAssert(triangle_normal_world.x() + triangle_normal_world.y() + triangle_normal_world.z() != btScalar(0.));
+
 			triangle_normal_world.normalize();
 
 		    btConvexShape* convex = (btConvexShape*)m_convexBodyWrap->getCollisionShape();
 			
-			btVector3 localPt = convex->localGetSupportingVertex(m_convexBodyWrap->getWorldTransform().getBasis().inverse()*triangle_normal_world);
+			auto inverseWorldTransform = m_convexBodyWrap->getWorldTransform().getBasis().inverse();
+
+			btVector3 localPt = convex->localGetSupportingVertex(inverseWorldTransform * triangle_normal_world);
 			btVector3 worldPt = m_convexBodyWrap->getWorldTransform()*localPt;
 			//now check if this is fully on one side of the triangle
 			btScalar proj_distPt = triangle_normal_world.dot(worldPt);
@@ -130,7 +135,7 @@ void btConvexTriangleCallback::processTriangle(btVector3* triangle, int partId, 
 			//also check the other side of the triangle
 			triangle_normal_world*=-1;
 
-			localPt = convex->localGetSupportingVertex(m_convexBodyWrap->getWorldTransform().getBasis().inverse()*triangle_normal_world);
+			localPt = convex->localGetSupportingVertex(inverseWorldTransform * triangle_normal_world);
 			worldPt = m_convexBodyWrap->getWorldTransform()*localPt;
 			//now check if this is fully on one side of the triangle
 			proj_distPt = triangle_normal_world.dot(worldPt);
