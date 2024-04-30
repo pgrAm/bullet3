@@ -169,7 +169,7 @@ bool SphereTriangleDetector::collide(const btVector3& sphereCenter, btVector3& p
 			{
 				btScalar distance = btSqrt(distanceSqr);
 				resultNormal = contactToCentre;
-				resultNormal.normalize();
+				resultNormal /= distance;
 				point = contactPoint;
 				depth = -(radius - distance);
 			}
