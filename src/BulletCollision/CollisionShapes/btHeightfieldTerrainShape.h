@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef BT_HEIGHTFIELD_TERRAIN_SHAPE_H
 #define BT_HEIGHTFIELD_TERRAIN_SHAPE_H
 
-#include <bullet/BulletCollision/CollisionShapes/btConcaveShape.h>
+#include <BulletCollision/CollisionShapes/btConcaveShape.h>
 #include "LinearMath/btAlignedObjectArray.h"
 
 ///btHeightfieldTerrainShape simulates a 2D heightfield terrain
@@ -67,6 +67,7 @@ subject to the following restrictions:
 
   For usage and testing see the TerrainDemo.
  */
+
 ATTRIBUTE_ALIGNED16(class)
 btHeightfieldTerrainShape final : public btConcaveShape
 {
@@ -106,22 +107,26 @@ protected:
 	//union {
 	//	const unsigned char* m_heightfieldDataUnsignedChar;
 	//	const short* m_heightfieldDataShort;
-	const float* m_heightfieldDataFloat;
+	const float* m_heightfieldDataFloat = nullptr;
+	const uint16_t* m_heightfieldDatauShort = nullptr;
+
 	//	const double* m_heightfieldDataDouble;
 	//	const void* m_heightfieldDataUnknown;
 	//};
 
-	static constexpr PHY_ScalarType m_heightDataType = PHY_FLOAT;
+	PHY_ScalarType m_heightDataType = PHY_FLOAT;
 	static constexpr bool m_flipQuadEdges = true;
-	static constexpr bool m_useDiamondSubdivision = false;
-	static constexpr bool m_useZigzagSubdivision = true;
+	static constexpr bool m_useDiamondSubdivision = true;
+	static constexpr bool m_useZigzagSubdivision = false;
 	static constexpr bool m_flipTriangleWinding = false;
 	static constexpr int m_upAxis = 1;
 
 	btVector3 m_localScaling;
 
 	// Accelerator
-	btAlignedObjectArray<Range> m_vboundsGrid;
+	btAlignedObjectArray<Range> m_vboundsGrid{};
+	bool check;
+
 	int m_vboundsGridWidth;
 	int m_vboundsGridLength;
 	int m_vboundsChunkSize;
@@ -130,6 +135,7 @@ protected:
 
 	struct btTriangleInfoMap* m_triangleInfoMap;
 
+	template<typename T>
 	btScalar getRawHeightFieldValue(int x, int y) const;
 	void quantizeWithClamp(int* out, const btVector3& point, int isMax) const;
 
@@ -139,7 +145,7 @@ protected:
 	  backwards-compatible without a lot of copy/paste.
 	 */
 	void initialize(int heightStickWidth, int heightStickLength,
-					const float* heightfieldData, btScalar heightScale,
+					btScalar heightScale,
 					btScalar minHeight, btScalar maxHeight, int upAxis,
 					PHY_ScalarType heightDataType, bool flipQuadEdges);
 
@@ -155,10 +161,10 @@ public:
 	//	int heightStickWidth, int heightStickLength,
 	//	const double* heightfieldData, btScalar minHeight, btScalar maxHeight,
 	//	int upAxis, bool flipQuadEdges);
-	//btHeightfieldTerrainShape(
-	//	int heightStickWidth, int heightStickLength,
-	//	const short* heightfieldData, btScalar heightScale, btScalar minHeight, btScalar maxHeight,
-	//	int upAxis, bool flipQuadEdges);
+	btHeightfieldTerrainShape(
+		int heightStickWidth, int heightStickLength,
+		const uint16_t* heightfieldData, btScalar minHeight, btScalar maxHeight,
+		int upAxis, bool flipQuadEdges);
 	//btHeightfieldTerrainShape(
 	//	int heightStickWidth, int heightStickLength,
 	//	const unsigned char* heightfieldData, btScalar heightScale, btScalar minHeight, btScalar maxHeight,
@@ -216,8 +222,6 @@ public:
 
 	virtual const btVector3& getLocalScaling() const;
 
-	void getVertex(int x, int y, btVector3& vertex) const;
-
 	void performRaycast(btTriangleCallback * callback, const btVector3& raySource, const btVector3& rayTarget) const;
 
 	void buildAccelerator(int chunkSize = 16);
@@ -254,6 +258,27 @@ public:
 	{
 		return m_heightfieldDataUnsignedChar;
 	}*/
+
+	PHY_ScalarType getDataType() const
+	{
+		return m_heightDataType;
+	}
+
+	template <typename T>
+	void getVertex(int x, int y, btVector3& vertex) const;
+
+private:	
+	template <typename T>
+	void processRange(btTriangleCallback * callback, Range aabbUpRange, int startX, int endX, int startJ, int endJ) const;
+
+	template <typename T>
+	void buildAcceleratorInternal(int chunkSize = 16);
+	
+	template <typename T>
+	void performRaycastInternal(btTriangleCallback * callback, const btVector3& raySource, const btVector3& rayTarget) const;
+
+	template <typename T>
+	void processAllTrianglesInternal(btTriangleCallback * callback, const btVector3& aabbMin, const btVector3& aabbMax) const;
 };
 
 #endif  //BT_HEIGHTFIELD_TERRAIN_SHAPE_H
