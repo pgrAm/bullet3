@@ -20,6 +20,8 @@ subject to the following restrictions:
 #include "LinearMath/btAlignedObjectArray.h"
 #include "LinearMath/btThreads.h"
 #include "btThreadSupportInterface.h"
+#include "LinearMath/btQuickprof.h"
+
 #include <windows.h>
 #include <stdio.h>
 
@@ -227,6 +229,8 @@ btThreadSupportWin32::~btThreadSupportWin32()
 
 DWORD WINAPI win32threadStartFunc(LPVOID lpParam)
 {
+	BT_PROFILE("win32threadStartFunc");
+
 	btThreadSupportWin32::btThreadStatus* status = (btThreadSupportWin32::btThreadStatus*)lpParam;
 
 	while (1)
@@ -256,6 +260,8 @@ DWORD WINAPI win32threadStartFunc(LPVOID lpParam)
 
 void btThreadSupportWin32::runTask(int threadIndex, void* userData)
 {
+	BT_PROFILE("runTask");
+
 	btThreadStatus& threadStatus = m_activeThreadStatus[threadIndex];
 	btAssert(threadIndex >= 0);
 	btAssert(int(threadIndex) < m_activeThreadStatus.size());
@@ -271,6 +277,8 @@ void btThreadSupportWin32::runTask(int threadIndex, void* userData)
 
 int btThreadSupportWin32::waitForResponse()
 {
+	BT_PROFILE("waitForResponse");
+
 	btAssert(m_activeThreadStatus.size());
 
 	int last = -1;
@@ -303,6 +311,8 @@ void btThreadSupportWin32::waitForAllTasks()
 
 void btThreadSupportWin32::startThreads(const ConstructionInfo& threadConstructionInfo)
 {
+	BT_PROFILE("startThreads");
+
 	static int uniqueId = 0;
 	uniqueId++;
 	btProcessorInfo& procInfo = m_processorInfo;

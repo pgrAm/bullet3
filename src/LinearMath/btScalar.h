@@ -111,9 +111,6 @@ inline int btIsDoublePrecision()
             //Do not turn SSE on for ARM (may want to turn on BT_USE_NEON however)
 #elif (defined (_WIN32) && (_MSC_VER) && _MSC_VER >= 1400) && (!defined (BT_USE_DOUBLE_PRECISION))
 
-#ifdef __clang__
-#define __BT_DISABLE_SSE__
-#endif
 #ifndef __BT_DISABLE_SSE__
 			#if _MSC_VER>1400
 				#define BT_USE_SIMD_VECTOR3

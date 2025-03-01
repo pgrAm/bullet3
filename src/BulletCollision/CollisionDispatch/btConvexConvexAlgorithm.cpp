@@ -50,6 +50,7 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.h"
 #include "BulletCollision/NarrowPhaseCollision/btPolyhedralContactClipping.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
+#include "LinearMath/btQuickprof.h"
 
 ///////////
 
@@ -272,6 +273,8 @@ extern btScalar gContactBreakingThreshold;
 //
 void btConvexConvexAlgorithm ::processCollision(const btCollisionObjectWrapper* body0Wrap, const btCollisionObjectWrapper* body1Wrap, const btDispatcherInfo& dispatchInfo, btManifoldResult* resultOut)
 {
+	BT_PROFILE("btConvexConvexAlgorithm::processCollision");
+
 	if (!m_manifoldPtr)
 	{
 		//swapped?

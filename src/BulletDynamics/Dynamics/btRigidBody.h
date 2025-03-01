@@ -61,7 +61,6 @@ class btRigidBody : public btCollisionObject
 	btMatrix3x3 m_invInertiaTensorWorld;
 	btVector3 m_linearVelocity;
 	btVector3 m_angularVelocity;
-	btScalar m_inverseMass;
 	btVector3 m_linearFactor;
 
 	btVector3 m_gravity;
@@ -72,6 +71,7 @@ class btRigidBody : public btCollisionObject
 
 	btScalar m_linearDamping;
 	btScalar m_angularDamping;
+	btScalar m_inverseMass;
 
 	bool m_additionalDamping;
 	btScalar m_additionalDampingFactor;
@@ -82,7 +82,7 @@ class btRigidBody : public btCollisionObject
 	btScalar m_linearSleepingThreshold;
 	btScalar m_angularSleepingThreshold;
 
-	//m_optionalMotionState allows to automatic synchronize the world transform for active objects
+	//m_optionalMotionState allows to automatic synchronize the world transform for active_entity objects
 	btMotionState* m_optionalMotionState;
 
 	//keep track of typed constraints referencing this rigid body, to disable collision between linked bodies
@@ -93,12 +93,12 @@ class btRigidBody : public btCollisionObject
 	int m_debugBodyId;
 
 protected:
-	ATTRIBUTE_ALIGNED16(btVector3 m_deltaLinearVelocity);
-	btVector3 m_deltaAngularVelocity;
+	//ATTRIBUTE_ALIGNED16(btVector3 m_deltaLinearVelocity);
+	//btVector3 m_deltaAngularVelocity;
 	btVector3 m_angularFactor;
-	btVector3 m_invMass;
-	btVector3 m_pushVelocity;
-	btVector3 m_turnVelocity;
+	//btVector3 m_invMass;
+	//btVector3 m_pushVelocity;
+	//btVector3 m_turnVelocity;
 
 public:
 	///The btRigidBodyConstructionInfo structure provides information to create a rigid body. Setting mass to zero creates a fixed (non-dynamic) rigid body.
@@ -258,7 +258,7 @@ public:
 	void setLinearFactor(const btVector3& linearFactor)
 	{
 		m_linearFactor = linearFactor;
-		m_invMass = m_linearFactor * m_inverseMass;
+		//m_invMass = m_linearFactor * m_inverseMass;
 	}
 	btScalar getInvMass() const { return m_inverseMass; }
 	btScalar getMass() const { return m_inverseMass == btScalar(0.) ? btScalar(0.) : btScalar(1.0) / m_inverseMass; }
@@ -344,7 +344,7 @@ public:
 		}
 	}
     
-    void applyPushImpulse(const btVector3& impulse, const btVector3& rel_pos)
+    /*void applyPushImpulse(const btVector3& impulse, const btVector3& rel_pos)
     {
         if (m_inverseMass != btScalar(0.))
         {
@@ -369,7 +369,7 @@ public:
     void setPushVelocity(const btVector3& v)
     {
         m_pushVelocity = v;
-    }
+    }*/
 
     #if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
     void clampVelocity(btVector3& v) const {
@@ -388,7 +388,7 @@ public:
     }
     #endif
 
-    void setTurnVelocity(const btVector3& v)
+    /*void setTurnVelocity(const btVector3& v)
     {
         m_turnVelocity = v;
         #if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
@@ -410,7 +410,7 @@ public:
         #if defined(BT_CLAMP_VELOCITY_TO) && BT_CLAMP_VELOCITY_TO > 0
         clampVelocity(m_turnVelocity);
         #endif
-    }
+    }*/
 
 	void clearForces()
 	{
@@ -466,11 +466,11 @@ public:
 		//		return 	(m_worldTransform(rel_pos) - m_interpolationWorldTransform(rel_pos)) / m_kinematicTimeStep;
 	}
     
-    btVector3 getPushVelocityInLocalPoint(const btVector3& rel_pos) const
+    /*btVector3 getPushVelocityInLocalPoint(const btVector3& rel_pos) const
     {
         //we also calculate lin/ang velocity for kinematic objects
         return m_pushVelocity + m_turnVelocity.cross(rel_pos);
-    }
+    }*/
 
 	void translate(const btVector3& v)
 	{
@@ -545,7 +545,7 @@ public:
 		m_broadphaseHandle = broadphaseProxy;
 	}
 
-	//btMotionState allows to automatic synchronize the world transform for active objects
+	//btMotionState allows to automatic synchronize the world transform for active_entity objects
 	btMotionState* getMotionState()
 	{
 		return m_optionalMotionState;

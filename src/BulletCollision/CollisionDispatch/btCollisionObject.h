@@ -32,7 +32,6 @@ struct btCollisionShapeData;
 #include "LinearMath/btMotionState.h"
 #include "LinearMath/btAlignedAllocator.h"
 #include "LinearMath/btAlignedObjectArray.h"
-
 typedef btAlignedObjectArray<class btCollisionObject*> btCollisionObjectArray;
 
 #ifdef BT_USE_DOUBLE_PRECISION
@@ -50,6 +49,9 @@ ATTRIBUTE_ALIGNED16(class)
 btCollisionObject
 {
 protected:
+	///users can point to their objects, m_userPointer is not used by Bullet, see setUserPointer/getUserPointer
+	void* m_userObjectPointer;
+
 	btTransform m_worldTransform;
 
 	///m_interpolationWorldTransform is used for CCD and interpolation
@@ -67,7 +69,7 @@ protected:
 	btBroadphaseProxy* m_broadphaseHandle;
 	btCollisionShape* m_collisionShape;
 	///m_extensionPointer is used by some internal low-level Bullet extensions.
-	void* m_extensionPointer;
+	//void* m_extensionPointer;
 
 	///m_rootCollisionShape is temporarily used to store the original collision shape
 	///The m_collisionShape might be temporarily replaced by a child collision shape during collision detection purposes
@@ -94,15 +96,11 @@ protected:
 	///do not assign your own m_internalType unless you write a new dynamics object class.
 	int m_internalType;
 
-	///users can point to their objects, m_userPointer is not used by Bullet, see setUserPointer/getUserPointer
-
-	void* m_userObjectPointer;
-
-	int m_userIndex2;
+	//int m_userIndex2;
 
 	int m_userIndex;
 
-	int m_userIndex3;
+	//int m_userIndex3;
 
 	///time of impact calculation
 	btScalar m_hitFraction;
@@ -116,13 +114,14 @@ protected:
 	/// If some object should have elaborate collision filtering by sub-classes
 	int m_checkCollideWith;
 
-	btAlignedObjectArray<const btCollisionObject*> m_objectsWithoutCollisionCheck;
-
 	///internal update revision number. It will be increased when the object changes. This allows some subsystems to perform lazy evaluation.
 	int m_updateRevision;
 
-	btVector3 m_customDebugColorRGB;
+	btAlignedObjectArray<const btCollisionObject*> m_objectsWithoutCollisionCheck;
 
+#ifdef ENABLE_BULLET_DEBUG_DRAW
+	btVector3 m_customDebugColorRGB;
+#endif
 public:
 	BT_DECLARE_ALIGNED_ALLOCATOR();
 
@@ -273,7 +272,7 @@ public:
 		return true;
 	}
 
-	///Avoid using this internal API call, the extension pointer is used by some Bullet extensions.
+	/*///Avoid using this internal API call, the extension pointer is used by some Bullet extensions.
 	///If you need to store your own user pointer, use 'setUserPointer/getUserPointer' instead.
 	void* internalGetExtensionPointer() const
 	{
@@ -284,7 +283,7 @@ public:
 	void internalSetExtensionPointer(void* pointer)
 	{
 		m_extensionPointer = pointer;
-	}
+	}*/
 
 	SIMD_FORCE_INLINE int getActivationState() const { return m_activationState1; }
 
@@ -535,15 +534,15 @@ public:
 		return m_userIndex;
 	}
 
-	int getUserIndex2() const
-	{
-		return m_userIndex2;
-	}
-
-	int getUserIndex3() const
-	{
-		return m_userIndex3;
-	}
+	//int getUserIndex2() const
+	//{
+	//	return m_userIndex2;
+	//}
+	//
+	//int getUserIndex3() const
+	//{
+	//	return m_userIndex3;
+	//}
 
 	///users can point to their objects, userPointer is not used by Bullet
 	void setUserPointer(void* userPointer)
@@ -557,15 +556,15 @@ public:
 		m_userIndex = index;
 	}
 
-	void setUserIndex2(int index)
-	{
-		m_userIndex2 = index;
-	}
-
-	void setUserIndex3(int index)
-	{
-		m_userIndex3 = index;
-	}
+	//void setUserIndex2(int index)
+	//{
+	//	m_userIndex2 = index;
+	//}
+	//
+	//void setUserIndex3(int index)
+	//{
+	//	m_userIndex3 = index;
+	//}
 
 	int getUpdateRevisionInternal() const
 	{
@@ -574,7 +573,9 @@ public:
 
 	void setCustomDebugColor(const btVector3& colorRGB)
 	{
+#ifdef ENABLE_BULLET_DEBUG_DRAW
 		m_customDebugColorRGB = colorRGB;
+#endif
 		m_collisionFlags |= CF_HAS_CUSTOM_DEBUG_RENDERING_COLOR;
 	}
 
@@ -586,10 +587,12 @@ public:
 	bool getCustomDebugColor(btVector3 & colorRGB) const
 	{
 		bool hasCustomColor = (0 != (m_collisionFlags & CF_HAS_CUSTOM_DEBUG_RENDERING_COLOR));
+#ifdef ENABLE_BULLET_DEBUG_DRAW
 		if (hasCustomColor)
 		{
 			colorRGB = m_customDebugColorRGB;
 		}
+#endif
 		return hasCustomColor;
 	}
 

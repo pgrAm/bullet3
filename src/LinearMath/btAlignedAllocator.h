@@ -68,13 +68,13 @@ class btAlignedAllocator
 
 public:
 	//just going down a list:
-	btAlignedAllocator() {}
+	constexpr btAlignedAllocator() = default;
 	/*
 	btAlignedAllocator( const self_type & ) {}
 	*/
 
 	template <typename Other>
-	btAlignedAllocator(const btAlignedAllocator<Other, Alignment>&)
+	constexpr btAlignedAllocator(const btAlignedAllocator<Other, Alignment>&)
 	{
 	}
 
@@ -84,19 +84,19 @@ public:
 	typedef T& reference;
 	typedef T value_type;
 
-	pointer address(reference ref) const { return &ref; }
-	const_pointer address(const_reference ref) const { return &ref; }
-	pointer allocate(size_type n, const_pointer* hint = 0)
+	constexpr pointer address(reference ref) const { return &ref; }
+	constexpr const_pointer address(const_reference ref) const { return &ref; }
+	pointer allocate(size_type n, const_pointer* hint = 0) const
 	{
 		(void)hint;
 		return reinterpret_cast<pointer>(btAlignedAlloc(sizeof(value_type) * n, Alignment));
 	}
 	void construct(pointer ptr, const value_type& value) { new (ptr) value_type(value); }
-	void deallocate(pointer ptr)
+	void deallocate(pointer ptr) const
 	{
 		btAlignedFree(reinterpret_cast<void*>(ptr));
 	}
-	void destroy(pointer ptr) { ptr->~value_type(); }
+	void destroy(pointer ptr) const { ptr->~value_type(); }
 
 	template <typename O>
 	struct rebind
@@ -104,12 +104,12 @@ public:
 		typedef btAlignedAllocator<O, Alignment> other;
 	};
 	template <typename O>
-	self_type& operator=(const btAlignedAllocator<O, Alignment>&)
+	constexpr self_type& operator=(const btAlignedAllocator<O, Alignment>&)
 	{
 		return *this;
 	}
 
-	friend bool operator==(const self_type&, const self_type&) { return true; }
+	constexpr friend bool operator==(const self_type&, const self_type&) { return true; }
 };
 
 #endif  //BT_ALIGNED_ALLOCATOR

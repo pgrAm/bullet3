@@ -1154,7 +1154,7 @@ inline void btDbvt::collideTV(const btDbvtNode* root,
 	{
 		ATTRIBUTE_ALIGNED16(btDbvtVolume)
 		volume(vol);
-		btAlignedObjectArray<const btDbvtNode*> stack;
+		btAlignedObjectArray<const btDbvtNode*, true> stack;
 		stack.resize(0);
 #ifndef BT_DISABLE_STACK_TEMP_MEMORY
 		char tempmemory[SIMPLE_STACKSIZE * sizeof(const btDbvtNode*)];
@@ -1295,7 +1295,7 @@ inline void btDbvt::rayTest(const btDbvtNode* root,
 
 		btVector3 resultNormal;
 
-		btAlignedObjectArray<const btDbvtNode*> stack;
+		btAlignedObjectArray<const btDbvtNode*, true> stack;
 
 		int depth = 1;
 		int treshold = DOUBLE_STACKSIZE - 2;

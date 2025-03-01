@@ -50,7 +50,7 @@ class btSerializer;
 // 4 gives the potential for 16 parts, each with 2^27 triangles (134217728)
 // actually) triangles each (since the sign bit is reserved
 //#define MAX_NUM_PARTS_IN_BITS 10
-#define MAX_NUM_PARTS_IN_BITS 4
+#define MAX_NUM_PARTS_IN_BITS 5
 
 ///btQuantizedBvhNode is a compressed aabb node, 16 bytes.
 ///Node can be used for leafnode or internal node. Leafnodes can point to 32-bit triangle index (non-negative range).
@@ -158,9 +158,9 @@ public:
 #include "LinearMath/btAlignedObjectArray.h"
 
 ///for code readability:
-typedef btAlignedObjectArray<btOptimizedBvhNode> NodeArray;
-typedef btAlignedObjectArray<btQuantizedBvhNode> QuantizedNodeArray;
-typedef btAlignedObjectArray<btBvhSubtreeInfo> BvhSubtreeInfoArray;
+typedef btAlignedObjectArray<btOptimizedBvhNode, true> NodeArray;
+typedef btAlignedObjectArray<btQuantizedBvhNode, true> QuantizedNodeArray;
+typedef btAlignedObjectArray<btBvhSubtreeInfo, true> BvhSubtreeInfoArray;
 
 ///The btQuantizedBvh class stores an AABB tree that can be quickly traversed on CPU and Cell SPU.
 ///It is used by the btBvhTriangleMeshShape as midphase.

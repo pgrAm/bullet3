@@ -384,7 +384,7 @@ void btSimulationIslandManager::processIslands(btDispatcher* dispatcher, btColli
 
 		//m_islandmanifold.heapSort(btPersistentManifoldSortPredicate());
 
-		//now process all active islands (sets of manifolds for now)
+		//now process all active_entity islands (sets of manifolds for now)
 
 		int startManifoldIndex = 0;
 		int endManifoldIndex = 1;

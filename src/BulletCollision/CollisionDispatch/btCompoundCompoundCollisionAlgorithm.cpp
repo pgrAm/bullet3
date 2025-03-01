@@ -232,7 +232,7 @@ static inline void MycollideTT(const btDbvtNode* root0,
 	{
 		int depth = 1;
 		int treshold = btDbvt::DOUBLE_STACKSIZE - 4;
-		btAlignedObjectArray<btDbvt::sStkNN> stkStack;
+		btAlignedObjectArray<btDbvt::sStkNN, true> stkStack;
 #ifdef USE_LOCAL_STACK
 		ATTRIBUTE_ALIGNED16(btDbvt::sStkNN localStack[btDbvt::DOUBLE_STACKSIZE]);
 		stkStack.initializeFromBuffer(&localStack, btDbvt::DOUBLE_STACKSIZE, btDbvt::DOUBLE_STACKSIZE);
@@ -284,6 +284,8 @@ static inline void MycollideTT(const btDbvtNode* root0,
 
 void btCompoundCompoundCollisionAlgorithm::processCollision(const btCollisionObjectWrapper* body0Wrap, const btCollisionObjectWrapper* body1Wrap, const btDispatcherInfo& dispatchInfo, btManifoldResult* resultOut)
 {
+	BT_PROFILE("btCompoundCompoundCollisionAlgorithm::processCollision");
+
 	const btCollisionObjectWrapper* col0ObjWrap = body0Wrap;
 	const btCollisionObjectWrapper* col1ObjWrap = body1Wrap;
 

@@ -357,8 +357,8 @@ void btHeightfieldTerrainShape::processRange(btTriangleCallback* callback, Range
 				// Skip triangle processing if the triangle is out-of-AABB.
 				Range upRange = minmaxRange(vertices[0][m_upAxis], vertices[1][m_upAxis], vertices[2][m_upAxis]);
 
-				if (upRange.overlaps(aabbUpRange))
-					callback->processTriangle(vertices, 2 * x, j);
+				if (upRange.overlaps(aabbUpRange) && check_hole_map(x, j))
+						callback->processTriangle(vertices, 2 * x, j);
 
 				// already set: getVertex(x, j, vertices[i0])
 
@@ -369,7 +369,7 @@ void btHeightfieldTerrainShape::processRange(btTriangleCallback* callback, Range
 				upRange.min = btMin(upRange.min, vertices[i2][m_upAxis]);
 				upRange.max = btMax(upRange.max, vertices[i2][m_upAxis]);
 
-				if (upRange.overlaps(aabbUpRange))
+				if (upRange.overlaps(aabbUpRange) && check_hole_map(x, j))
 					callback->processTriangle(vertices, 2 * x + 1, j);
 			}
 			else
@@ -381,7 +381,7 @@ void btHeightfieldTerrainShape::processRange(btTriangleCallback* callback, Range
 				// Skip triangle processing if the triangle is out-of-AABB.
 				Range upRange = minmaxRange(vertices[0][m_upAxis], vertices[1][m_upAxis], vertices[2][m_upAxis]);
 
-				if (upRange.overlaps(aabbUpRange))
+				if (upRange.overlaps(aabbUpRange) && check_hole_map(x, j))
 					callback->processTriangle(vertices, 2 * x, j);
 
 				// already set: getVertex(x, j + 1, vertices[i1]);
@@ -393,7 +393,7 @@ void btHeightfieldTerrainShape::processRange(btTriangleCallback* callback, Range
 				upRange.min = btMin(upRange.min, vertices[i2][m_upAxis]);
 				upRange.max = btMax(upRange.max, vertices[i2][m_upAxis]);
 
-				if (upRange.overlaps(aabbUpRange))
+				if (upRange.overlaps(aabbUpRange) && check_hole_map(x, j))
 					callback->processTriangle(vertices, 2 * x + 1, j);
 			}
 		}
@@ -729,19 +729,30 @@ struct ProcessTrianglesAction
 		// TODO Since this is for raycasts, we could greatly benefit from an early exit on the first hit
 
 		// Check quad
-		if (flipQuadEdges || (useDiamondSubdivision && (((z + x) & 1) > 0)))
+		if (flipQuadEdges || (useDiamondSubdivision && !((z + x) & 1)))
 		{
 			// First triangle
 			shape->getVertex<T>(x, z, vertices[0]);
 			shape->getVertex<T>(x + 1, z, vertices[1]);
 			shape->getVertex<T>(x + 1, z + 1, vertices[2]);
-			callback->processTriangle(vertices, x, z);
+
+			//vertices[0] += btVector3(0.5f, 0.0f, 0.5f) * shape->getLocalScaling();
+			//vertices[1] += btVector3(0.5f, 0.0f, 0.5f) * shape->getLocalScaling();
+			//vertices[2] += btVector3(0.5f, 0.0f, 0.5f) * shape->getLocalScaling();
+
+			if (shape->check_hole_map(x, z))
+				callback->processTriangle(vertices, x, z);
 
 			// Second triangle
 			shape->getVertex<T>(x, z, vertices[0]);
 			shape->getVertex<T>(x + 1, z + 1, vertices[1]);
 			shape->getVertex<T>(x, z + 1, vertices[2]);
-			callback->processTriangle(vertices, x, z);
+
+			//vertices[0] += btVector3(0.5f, 0.0f, 0.5f) * shape->getLocalScaling();
+			//vertices[1] += btVector3(0.5f, 0.0f, 0.5f) * shape->getLocalScaling();
+			//vertices[2] += btVector3(0.5f, 0.0f, 0.5f) * shape->getLocalScaling();
+			if (shape->check_hole_map(x, z))
+				callback->processTriangle(vertices, x, z);
 		}
 		else
 		{
@@ -749,13 +760,24 @@ struct ProcessTrianglesAction
 			shape->getVertex<T>(x, z, vertices[0]);
 			shape->getVertex<T>(x, z + 1, vertices[1]);
 			shape->getVertex<T>(x + 1, z, vertices[2]);
-			callback->processTriangle(vertices, x, z);
+
+			//vertices[0] += btVector3(0.5f, 0.0f, 0.5f) * shape->getLocalScaling();
+			//vertices[1] += btVector3(0.5f, 0.0f, 0.5f) * shape->getLocalScaling();
+			//vertices[2] += btVector3(0.5f, 0.0f, 0.5f) * shape->getLocalScaling();
+
+			if (shape->check_hole_map(x, z))
+				callback->processTriangle(vertices, x, z);
 
 			// Second triangle
 			shape->getVertex<T>(x + 1, z, vertices[0]);
 			shape->getVertex<T>(x, z + 1, vertices[1]);
 			shape->getVertex<T>(x + 1, z + 1, vertices[2]);
-			callback->processTriangle(vertices, x, z);
+
+			//vertices[0] += btVector3(0.5f, 0.0f, 0.5f) * shape->getLocalScaling();
+			//vertices[1] += btVector3(0.5f, 0.0f, 0.5f) * shape->getLocalScaling();
+			//vertices[2] += btVector3(0.5f, 0.0f, 0.5f) * shape->getLocalScaling();
+			if (shape->check_hole_map(x, z))
+				callback->processTriangle(vertices, x, z);
 		}
 	}
 
@@ -1033,3 +1055,22 @@ void btHeightfieldTerrainShape::clearAccelerator()
 
 template void btHeightfieldTerrainShape::buildAcceleratorInternal<float>(int chunkSize);
 template void btHeightfieldTerrainShape::buildAcceleratorInternal<uint16_t>(int chunkSize);
+
+
+bool btHeightfieldTerrainShape::check_hole_map(int x, int z) const
+{
+	if (!m_hole_map_ptr)
+		return true;
+
+	auto x_coord = int(((float)m_hole_map_width / m_heightStickWidth) * (float)x);
+	auto z_coord = int(((float)m_hole_map_length / m_heightStickLength) * (float)z);
+
+	return m_hole_map_ptr[x_coord + z_coord * m_hole_map_width] <= 127;
+}
+
+void btHeightfieldTerrainShape::set_hole_map(uint8_t* ptr, int x, int z)
+{
+	m_hole_map_width = x;
+	m_hole_map_length = z;
+	m_hole_map_ptr = ptr;
+}

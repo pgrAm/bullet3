@@ -27,7 +27,7 @@ struct btCollisionObjectWrapper;
 struct btDispatcherInfo;
 class btPersistentManifold;
 
-typedef btAlignedObjectArray<btPersistentManifold*> btManifoldArray;
+typedef btAlignedObjectArray<btPersistentManifold*, true> btManifoldArray;
 
 struct btCollisionAlgorithmConstructionInfo
 {

@@ -161,8 +161,7 @@ btVector3 btConvexShape::localGetSupportVertexWithoutMarginNonVirtual(const btVe
 			btVector3 dir(localDir.getX(), localDir.getY(), localDir.getZ());
 			btVector3* vertices = &triangleShape->m_vertices1[0];
 			btVector3 dots = dir.dot3(vertices[0], vertices[1], vertices[2]);
-			btVector3 sup = vertices[dots.maxAxis()];
-			return btVector3(sup.getX(), sup.getY(), sup.getZ());
+			return vertices[dots.maxAxis()];
 		}
 		case CYLINDER_SHAPE_PROXYTYPE:
 		{

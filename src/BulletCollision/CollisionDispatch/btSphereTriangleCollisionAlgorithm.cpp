@@ -19,6 +19,7 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
 #include "SphereTriangleDetector.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
+#include "LinearMath/btQuickprof.h"
 
 btSphereTriangleCollisionAlgorithm::btSphereTriangleCollisionAlgorithm(btPersistentManifold* mf, const btCollisionAlgorithmConstructionInfo& ci, const btCollisionObjectWrapper* body0Wrap, const btCollisionObjectWrapper* body1Wrap, bool swapped)
 	: btActivatingCollisionAlgorithm(ci, body0Wrap, body1Wrap),
@@ -63,7 +64,7 @@ void btSphereTriangleCollisionAlgorithm::processCollision(const btCollisionObjec
 	input.m_transformB = triObjWrap->getWorldTransform();
 
 	bool swapResults = m_swapped;
-
+	
 	detector.getClosestPoints(input, *resultOut, dispatchInfo.m_debugDraw, swapResults);
 
 	if (m_ownManifold)

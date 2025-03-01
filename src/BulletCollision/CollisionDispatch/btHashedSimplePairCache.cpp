@@ -128,7 +128,8 @@ btSimplePair* btHashedSimplePairCache::internalAddPair(int indexA, int indexB)
 
 	int count = m_overlappingPairArray.size();
 	int oldCapacity = m_overlappingPairArray.capacity();
-	void* mem = &m_overlappingPairArray.expandNonInitializing();
+
+	pair = &m_overlappingPairArray.emplace_back(indexA, indexB);
 
 	int newCapacity = m_overlappingPairArray.capacity();
 
@@ -138,8 +139,6 @@ btSimplePair* btHashedSimplePairCache::internalAddPair(int indexA, int indexB)
 		//hash with new capacity
 		hash = static_cast<int>(getHash(static_cast<unsigned int>(indexA), static_cast<unsigned int>(indexB)) & (m_overlappingPairArray.capacity() - 1));
 	}
-
-	pair = new (mem) btSimplePair(indexA, indexB);
 
 	pair->m_userPointer = 0;
 

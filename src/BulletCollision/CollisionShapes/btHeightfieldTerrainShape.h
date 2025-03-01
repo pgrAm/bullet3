@@ -110,12 +110,16 @@ protected:
 	const float* m_heightfieldDataFloat = nullptr;
 	const uint16_t* m_heightfieldDatauShort = nullptr;
 
+	uint8_t* m_hole_map_ptr = nullptr;
+	int m_hole_map_width = 0;
+	int m_hole_map_length = 0;
+
 	//	const double* m_heightfieldDataDouble;
 	//	const void* m_heightfieldDataUnknown;
 	//};
 
 	PHY_ScalarType m_heightDataType = PHY_FLOAT;
-	static constexpr bool m_flipQuadEdges = true;
+	static constexpr bool m_flipQuadEdges = false;
 	static constexpr bool m_useDiamondSubdivision = true;
 	static constexpr bool m_useZigzagSubdivision = false;
 	static constexpr bool m_flipTriangleWinding = false;
@@ -203,10 +207,10 @@ public:
 	}
 
 	///could help compatibility with Ogre heightfields. See https://code.google.com/p/bullet/issues/detail?id=625
-	void setUseZigzagSubdivision(bool useZigzagSubdivision = true)
-	{
-		//m_useZigzagSubdivision = useZigzagSubdivision;
-	}
+	//void setUseZigzagSubdivision(bool useZigzagSubdivision = true)
+	//{
+	//	//m_useZigzagSubdivision = useZigzagSubdivision;
+	//}
 
 	void setFlipTriangleWinding(bool flipTriangleWinding)
 	{
@@ -266,6 +270,9 @@ public:
 
 	template <typename T>
 	void getVertex(int x, int y, btVector3& vertex) const;
+
+	bool check_hole_map(int x, int z) const;
+	void set_hole_map(uint8_t* ptr, int x, int z);
 
 private:	
 	template <typename T>

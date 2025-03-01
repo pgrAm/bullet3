@@ -152,6 +152,8 @@ void btCollisionWorld::addCollisionObject(btCollisionObject* collisionObject, in
 
 void btCollisionWorld::updateSingleAabb(btCollisionObject* colObj)
 {
+	BT_PROFILE("updateSingleAabb");
+
 	btVector3 minAabb, maxAabb;
 	colObj->getCollisionShape()->getAabb(colObj->getWorldTransform(), minAabb, maxAabb);
 	//need to increase the aabb for contact thresholds
@@ -174,6 +176,7 @@ void btCollisionWorld::updateSingleAabb(btCollisionObject* colObj)
 	//moving objects should be moderately sized, probably something wrong if not
 	if (colObj->isStaticObject() || ((maxAabb - minAabb).length2() < btScalar(1e12)))
 	{
+		BT_PROFILE("setAabb");
 		bp->setAabb(colObj->getBroadphaseHandle(), minAabb, maxAabb, m_dispatcher1);
 	}
 	else
@@ -203,7 +206,7 @@ void btCollisionWorld::updateAabbs()
 		btCollisionObject* colObj = m_collisionObjects[i];
 		btAssert(colObj->getWorldArrayIndex() == i);
 
-		//only update aabb of active objects
+		//only update aabb of active_entity objects
 		if (m_forceUpdateAllAabbs || colObj->isActive())
 		{
 			updateSingleAabb(colObj);
@@ -1466,6 +1469,7 @@ void btCollisionWorld::debugDrawObject(const btTransform& worldTransform, const 
 
 void btCollisionWorld::debugDrawWorld()
 {
+#ifdef ENABLE_BULLET_DEBUG_DRAW
 	if (getDebugDrawer())
 	{
 		getDebugDrawer()->clearLines();
@@ -1560,6 +1564,7 @@ void btCollisionWorld::debugDrawWorld()
 			}
 		}
 	}
+#endif
 }
 
 void btCollisionWorld::serializeCollisionObjects(btSerializer* serializer)

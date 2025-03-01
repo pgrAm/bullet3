@@ -90,11 +90,11 @@ void btRigidBody::setupRigidBody(const btRigidBody::btRigidBodyConstructionInfo&
 
 	m_rigidbodyFlags = BT_ENABLE_GYROSCOPIC_FORCE_IMPLICIT_BODY;
 
-	m_deltaLinearVelocity.setZero();
-	m_deltaAngularVelocity.setZero();
-	m_invMass = m_inverseMass * m_linearFactor;
-	m_pushVelocity.setZero();
-	m_turnVelocity.setZero();
+	//m_deltaLinearVelocity.setZero();
+	//m_deltaAngularVelocity.setZero();
+	//m_invMass = m_inverseMass * m_linearFactor;
+	//m_pushVelocity.setZero();
+	//m_turnVelocity.setZero();
 }
 
 void btRigidBody::predictIntegratedTransform(btScalar timeStep, btTransform& predictedTransform)
@@ -243,7 +243,7 @@ void btRigidBody::setMassProps(btScalar mass, const btVector3& inertia)
 							   inertia.y() != btScalar(0.0) ? btScalar(1.0) / inertia.y() : btScalar(0.0),
 							   inertia.z() != btScalar(0.0) ? btScalar(1.0) / inertia.z() : btScalar(0.0));
 
-	m_invMass = m_linearFactor * m_inverseMass;
+	//m_invMass = m_linearFactor * m_inverseMass;
 }
 
 void btRigidBody::updateInertiaTensor()

@@ -22,6 +22,7 @@ subject to the following restrictions:
 #include "LinearMath/btAabbUtil2.h"
 #include "btManifoldResult.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
+#include "LinearMath/btQuickprof.h"
 
 btShapePairCallback gCompoundChildShapePairCallback = 0;
 
@@ -31,6 +32,13 @@ btCompoundCollisionAlgorithm::btCompoundCollisionAlgorithm(const btCollisionAlgo
 	  m_sharedManifold(ci.m_manifold)
 {
 	m_ownsManifold = false;
+
+	//if (!m_sharedManifold)
+	//{
+	//	//swapped?
+	//	m_sharedManifold = m_dispatcher->getNewManifold(body0Wrap->getCollisionObject(), body1Wrap->getCollisionObject());
+	//	m_ownsManifold = true;
+	//}
 
 	const btCollisionObjectWrapper* colObjWrap = m_isSwapped ? body1Wrap : body0Wrap;
 	btAssert(colObjWrap->getCollisionShape()->isCompound());
@@ -229,6 +237,8 @@ public:
 
 void btCompoundCollisionAlgorithm::processCollision(const btCollisionObjectWrapper* body0Wrap, const btCollisionObjectWrapper* body1Wrap, const btDispatcherInfo& dispatchInfo, btManifoldResult* resultOut)
 {
+	BT_PROFILE("btCompoundCollisionAlgorithm::processCollision");
+
 	const btCollisionObjectWrapper* colObjWrap = m_isSwapped ? body1Wrap : body0Wrap;
 	const btCollisionObjectWrapper* otherObjWrap = m_isSwapped ? body0Wrap : body1Wrap;
 
@@ -257,6 +267,8 @@ void btCompoundCollisionAlgorithm::processCollision(const btCollisionObjectWrapp
 	///note that we should actually recursively traverse all children, btCompoundShape can nested more then 1 level deep
 	///so we should add a 'refreshManifolds' in the btCollisionAlgorithm
 	{
+		BT_PROFILE("Refresh Contact Manifolds");
+
 		int i;
 		manifoldArray.resize(0);
 		for (i = 0; i < m_childCollisionAlgorithms.size(); i++)
